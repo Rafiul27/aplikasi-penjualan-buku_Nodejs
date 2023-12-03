@@ -1,0 +1,51 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800"><%= user %></h1>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h5 class="m-0 font-weight-bold text-primary">Data User</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+              <button href="/data-admin" class="btn btn-success" data-toggle="modal" data-target="#tambahDataModal">
+                <i class="fas fa-plus"></i> Tambah Data User
+              </button>
+            </div>
+        <div class="card-body">
+            <div class="table-responsive mx-auto">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr class="text-center">
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Nomor Handphone</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <% datauser.forEach((dataUser, index) => { %>
+                                <tr>
+                                    <td><%= index + 1 %></td>
+                                    <td><%= dataUser.nama %></td>
+                                    <td><%= dataUser.mobile %></td>
+                                    <td><%= dataUser.email %></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Edit</button>
+                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <button class="btn btn-success btn-sm">Detail</button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->

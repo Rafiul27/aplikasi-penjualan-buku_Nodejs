@@ -1,0 +1,111 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800"><%= number %></h1>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h4 class="m-0 font-weight-bold text-primary">Data Buku</h4>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+              <button href="/data-admin" class="btn btn-success" data-toggle="modal" data-target="#tambahDataModal">
+                <i class="fas fa-plus"></i> Tambah Data Buku
+              </button>
+            </div>
+        <div class="card-body">
+            <div class="table-responsive mx-auto">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr class="text-center">
+                            <th>No</th>
+                            <th>Kode Buku</th>
+                            <th>Judul Buku</th>
+                            <th>Kategori</th>
+                            <th>Penerbit</th>
+                            <th>Pengarang</th>
+                            <th>Harga</th>
+                            <th>Jumlah Buku</th>
+                            <th>Aksi</th>
+                        </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <% dataBuku.forEach((databuku, index) => { %>
+                                <tr>
+                                    <td><%= index + 1 %></td>
+                                    <td id="kodebuku"><%= databuku.kode %></td>
+                                    <td id="kodebuku"><%= databuku.judul %></td>
+                                    <td><%= databuku.kategori %></td>
+                                    <td><%= databuku.penerbit %></td>
+                                    <td><%= databuku.pengarang %></td>
+                                    <td><%= databuku.harga %></td>
+                                    <td><%= databuku.jumlah %></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Edit</button>
+                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <button class="btn btn-success btn-sm btn-detail" data-toggle="modal" data-target="#detailDataModal" data-book-id="<%= databuku.id %>">Detail</button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->
+<!-- Di dalam modal tambahDataModal -->
+<div class="modal fade" id="tambahDataModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Tambah Data Buku</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <!-- Formulir Tambah Data Buku -->
+          <form action="/tambah-data-buku" method="POST">
+            <!-- Isi formulir sesuai dengan bidang data buku yang ingin Anda tambahkan -->
+            <div class="form-group">
+              <label for="kodeBuku">Kode Buku:</label>
+              <input type="text" class="form-control" id="kodeBuku" name="kodeBuku" required>
+            </div>
+            <div class="form-group">
+              <label for="judulBuku">Judul Buku:</label>
+              <input type="text" class="form-control" id="judulBuku" name="judulBuku" required>
+            </div>
+            <!-- Tambahkan bidang lain sesuai kebutuhan -->
+  
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- Di dalam modal detailDataModal -->
+    <div class="modal fade" id="detailDataModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Detail Data Buku</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Kode Buku: <span id="kodebuku"></span></p>
+                    <p>Judul Buku: <span id="judulbuku"></span></p>
+                    <img src="/images/book.jpg" alt="Book Image" style="max-width: 100%; height: auto;">
+                    <!-- Tambahkan informasi detail lainnya sesuai kebutuhan -->
+
+                    <!-- Tombol Tutup -->
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>  
