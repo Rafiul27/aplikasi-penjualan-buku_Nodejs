@@ -2,15 +2,36 @@
 const express = require('express');
 
 const expressLayouts = require('express-ejs-layouts'); // Mengimpor modul express-ejs-layouts
+const { body, check, validationResult } = require('express-validator');
+
+const {
+    fetchDataUser,
+    addDataUser,
+    deleteDataUser,
+    fetchUserById,
+    checkIdUser,
+    duplicateIdUserCheck,
+    searchUser,
+    emailDuplicateUserCheck,
+    updateUser,
+    duplicateUserName,
+} = require("./models/server_user");
 
 // Menginisialisasi aplikasi Express
 const app = express();
 const path = require('path');
+const pool = require('./models/db');
+
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+const flash = require('connect-flash');
+
 
 // Menentukan port yang akan digunakan
 const port = 3000;
 
 // Mengatur EJS sebagai template engine
+app.set("layout", "layouts/main-layouts");
 app.set('view engine', 'ejs');
 
 
@@ -30,74 +51,31 @@ app.use((req, res, next) => {
     next();
 });
 
+// Middleware untuk mengizinkan penggunaan data POST
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieParser('secret'));
+app.use(
+    session({
+        cookie: { maxAge: 6000},
+        secret: 'secret',
+        resave: true,
+        saveUninitialized: true,
+    })
+);
+app.use(flash());
 
 
 // Penanganan rute untuk halaman utama
 app.get('/', (req, res) => {
     res.render('index', {
-        layout: 'layouts/main-layouts',
+        layout: 'layout/main-layout',
         namaWeb: "Rafi'ul Huda",
         title: 'Aplikasi Penjualan',
     });
 });
 
-// Penanganan rute untuk halaman about
-app.get('/login', (req, res) => {
-    res.render('login', {
-        title: "Halaman Login", 
-        layout: 'layouts/login-layouts',
-     });
-});
 
-// Penanganan rute untuk autentikasi (post request dari form login)
-app.post('/login', (req, res) => {
-    // Handle login logic here
-    const { email, password } = req.body;
-    
-    // Anda harus memeriksa basis data atau menyimpan informasi pengguna secara aman
-    // Di sini, hanya contoh sederhana untuk keperluan ilustrasi
-    if (email === 'user@gmail.com' && password === '12345') {
-        // Jika login berhasil untuk user
-        res.redirect('/');
-    } else if (email === 'admin@gmail.com' && password === '24689') {
-        // Jika login berhasil untuk admin
-        res.redirect('/');
-    } else {
-        // Jika kredensial tidak valid, tampilkan pesan atau kembali ke halaman login
-        res.send('Invalid credentials');
-    }
-});
-  
-app.get('/Register', (req, res) => {
-    res.render('register', {
-        title: "Halaman Register", 
-        layout: 'layouts/login-layouts',
-     });
-});
-
-app.post('/login/register', (req, res) => {
-    // Handle registration logic here
-    const { email, password } = req.body;
-
-    // Check if the email is already registered
-    const isEmailRegistered = users.some(user => user.email === email);
-
-    if (isEmailRegistered) {
-        // If the email is already registered, send a message to the user
-        res.render('register', {
-            title: 'Halaman Register',
-            layout: 'layouts/login-layouts',
-            errorMessage: 'Email sudah terdaftar. Gunakan email lain.',
-        });
-    } else {
-        // If the email is not registered, save the user data (in this example, it's just an array)
-        users.push({ email, password });
-
-        // Redirect the user to the login page or dashboard
-        res.redirect('/login');
-    }
-});
 
 // Penanganan rute untuk halaman contact
 app.get('/data-admin', (req, res) => {
@@ -131,46 +109,118 @@ app.get('/data-admin', (req, res) => {
             title: "Aplikasi Penjualan",
             dataAdmin: data,
             titleadmin: "Web Menu - Data Admin",
-            layout: 'layouts/main-layouts',
+            layout: 'layout/main-layout',
         });
     }
 });
-// Penanganan rute untuk halaman contact
-app.get('/data-user', (req, res) => {
-    const dataUser = [
-        {
-            nama: "Huda",
-            mobile: "081283288111",
-            email: "huda@gmail.com"
-        },
-        {
-            nama: "Rafi",
-            mobile: "081283288111",
-            email: "rafiul@gmail.com"
-        },
-        {
-            nama: "adinda",
-            mobile: "081283288111",
-            email: "adinda@gmail.com"
+// Penanganan rute untuk halaman data user
+app.get('/data-user', async (req, res) => {
+    try {
+      // Query ke database PostgreSQL
+      const result = await pool.query('SELECT * FROM data_user');
+  
+      // Mengambil hasil query
+      const dataUser = result.rows;
+  
+      if (dataUser.length === 0) {
+        res.render('user/data-user', {
+          message: 'Maaf, belum ada data user yang tersedia.',
+        });
+      } else {
+        res.render('user/data-user', {
+          title: 'Aplikasi Penjualan',
+          datauser: dataUser,
+          user: 'Search - Data User',
+          layout: 'layout/main-layout',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching data from PostgreSQL:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+// update data-user
+app.get("/data-user/update-user/:id_user", async (req, res) => {
+    try {
+      const users = await searchUser(req.params.id_user);
+      res.render("user/update-user", {
+        users: users,
+        title: "Search Book - Update User",
+        layout: "layout/main-layout",
+        users,
+      });
+    } catch (err) {
+      console.error(err.msg);
+      res.status(500);
+    }
+  });
+  
+app.post(
+    "/data-user/update",
+    [
+      body("id_user").custom(async (value, { req }) => {
+        const duplicate = await duplicateUserName(value);
+        if (value !== req.body.oldName && duplicate) {
+          throw new Error("Name anda sudah digunakan");
         }
-    ]; 
-    
-    // Memeriksa apakah ada data kontak
-    if (dataUser.length === 0) {
-        // Jika tidak ada, menampilkan pesan bahwa belum ada kontak yang tersedia
-        res.render('user/data-user', {
-            message: 'Maaf, Belum ada daftar kontak yang tersedia.'
+        return true;
+      }),
+      check("mobile", "Ada yang salah dengan nomor telepon").isMobilePhone(
+        "id-ID"
+      ),
+      body("email").custom(async (value) => {
+        const emailDuplicate = await emailDuplicateUserCheck(value);
+        if (emailDuplicate) {
+          throw new Error("Email sudah digunakan");
+        }
+        return true;
+      }),
+      check("email", "Invalid email").isEmail()
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.render("user/update-user", {
+          title: "Seacrh Book - Update User",
+          layout: "layout/main-layout",
+          errors: errors.array(),
+          users: req.body,
         });
-    } else {
-        // Jika ada, menampilkan data kontak di halaman kontak
-        res.render('user/data-user', {
-            title: "Aplikasi Penjualan",
-            datauser: dataUser,
-            user: "Web Menu - Data User",
-            layout: 'layouts/main-layouts',
-        });
+      } else {
+        try {
+          await updateUser(req.body);
+          req.flash("msg", "Data berhasil di update");
+          res.redirect("/data-user");
+        } catch (err) {
+          console.error(err.msg);
+          res.status(500);
+        }
+      }
     }
-});
+  );
+
+  // proses delete contact
+app.get('/data-user/delete-user/:id_user',async (req, res) =>{
+    try{
+        const users = await searchUser(req.params.id_user)
+
+        // jika contact tidak ada
+        if(!users){
+            res.status(404);
+            res.status('<h1>404</h1>');
+        }else{
+            await deleteDataUser(req.params.id_user);
+            req.flash('msg', 'Data User Anda Berhasil dihapuskan!');
+            res.redirect('/data-user');
+        }
+    }catch(err){
+        console.error(err.message);
+        res.status(500).send("<h1>internal server error</h1>");
+    }
+}) 
+
+  
 
 
 // Dalam rute Express Anda
@@ -221,7 +271,6 @@ app.get('/data-buku', (req, res) => {
             harga: "Rp. 15.000",
             jumlah: "10",
         },
-        
     ];
 
     // Checking if there is any book data
@@ -236,16 +285,27 @@ app.get('/data-buku', (req, res) => {
             title: "Data Buku",
             dataBuku: databuku, // Pastikan menggunakan nama variabel yang benar di sini
             number: "Web Menu - Data Buku",
-            layout: 'layouts/product-layouts',
+            layout: 'layout/product-layout',
         });
     }
 });
 
 
+// Penanganan rute untuk halaman about
+app.get('/login', (req, res) => {
+    res.render('login', {
+        title: "Halaman Login", 
+        layout: 'layout/login-layout',
+     });
+});
 
-
-
-
+  
+app.get('/Register', (req, res) => {
+    res.render('register', {
+        title: "Halaman Register", 
+        layout: 'layout/login-layout',
+     });
+});
 // Penanganan rute untuk permintaan yang tidak cocok dengan rute lainnya (404 Not Found)
 app.use('/', (req, res) => {
     res.status(404);
