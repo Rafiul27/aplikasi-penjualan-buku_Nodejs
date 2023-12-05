@@ -1,7 +1,7 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
     <!-- Page Heading -->
-    <h1 class="h3 mb-2 text-gray-800"><%= user %></h1>
+    <h1 class="h3 mb-2 text-gray-800">Seacrh Book - Data User</h1>
     <!-- DataTales Example -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -13,11 +13,12 @@
                     <i class="fas fa-plus"></i> Tambah Data User
                 </button>
             </div>
-            <% if (msg.length !== 0) { %>
+            <% if (typeof msg !== 'undefined' && msg.length !== 0) { %>
                 <div class="alert alert-success" role="alert">
-                  <%= msg %>
+                    <%= msg %>
                 </div>
-              <% } %>
+            <% } %>
+            
             <div class="card-body">
                 <% if (datauser.length === 0) { %>
                     <p>Data User tidak tersedia.</p>

@@ -1,0 +1,53 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800">Update Data Admin</h1>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <% if (typeof errors != 'undefined') { %>
+                <div class="alert alert-danger" role="alert">
+                  <ul>
+                    <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+              
+              <% } %>
+            <div class="card-body">
+                <form action="/data-admin/update" method="post" class="row g-3">
+                    <input type="hidden" name="oldName" value="<%= adminku.oldName || adminku.nama %>">
+                    <div class="col-12">
+                      <label for="id_admin" class="form-label">ID Admin</label>
+                      <input type="text" class="form-control" id="id_admin" name="id_admin" value="<%= adminku.id_admin ? adminku.id_admin : '' %>" required>
+                    </div>
+                    <div class="col-12">
+                      <label for="username" class="form-label">Username</label>
+                      <input type="text" class="form-control" id="username"  name="username" value="<%= adminku.username ? adminku.username : '' %>" required>
+                    </div>
+                    <div class="col-12">
+                      <label for="name" class="form-label">Name</label>
+                      <input type="text" class="form-control" id="name" name="nama"  value="<%= adminku.nama ? adminku.nama : ''  %>"  required>
+                    </div>
+                    <div class="col-12">
+                      <label for="email" class="form-label">Email</label>
+                      <input type="text" class="form-control" id="email" name="email"  value="<%=  adminku.email ? adminku.email : ''  %>" required>
+                    </div>
+                    <div class="col-12">
+                      <label for="mobile" class="form-label">Nomor Telepon</label>
+                      <input type="text" class="form-control" id="mobile"  name="mobile"  value="<%= adminku.mobile ? adminku.mobile : '' %>" required>
+                    </div>
+                    <div class="text-center p-2">
+                      <button type="submit" class="btn btn-primary">Submit</button>
+                      <button type="reset" class="btn btn-secondary">Reset</button>
+                      <a href="/data-admin" class="btn btn-primary">Back to admin page</a>
+                    </div>
+                  </form> 
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->

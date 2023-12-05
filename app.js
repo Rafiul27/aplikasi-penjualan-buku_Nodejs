@@ -5,6 +5,19 @@ const expressLayouts = require('express-ejs-layouts'); // Mengimpor modul expres
 const { body, check, validationResult } = require('express-validator');
 
 const {
+    fetchDataAdmin,
+    addDataAdminku,
+    deleteDataAdminku,
+    fetchDataAdminById,
+    checkIdDataAdmin,
+    duplicateIdCheck,
+    searchDataAdmin,
+    emailDuplicateCheck,
+    updateAdmin,
+    duplicateName,
+} = require("./models/data_admin")
+
+const {
     fetchDataUser,
     addDataUser,
     deleteDataUser,
@@ -15,7 +28,7 @@ const {
     emailDuplicateUserCheck,
     updateUser,
     duplicateUserName,
-} = require("./models/server_user");
+} = require("./models/data_user");
 
 // Menginisialisasi aplikasi Express
 const app = express();
@@ -77,50 +90,118 @@ app.get('/', (req, res) => {
 
 
 
-// Penanganan rute untuk halaman contact
-app.get('/data-admin', (req, res) => {
-    const data = [
-        {
-            nama: "Rafi'ul Huda",
-            mobile: "081283288739",
-            email: "rafiulhuda@gmail.com"
-        },
-        {
-            nama: "Rafiul",
-            mobile: "081283288789",
-            email: "rafiul@gmail.com"
-        },
-        {
-            nama: "Raya Adinda Jayadi Ahmad",
-            mobile: "081283288773",
-            email: "raya@gmail.com"
-        }
-    ]; 
-    
-    // Memeriksa apakah ada data kontak
+// Penanganan rute untuk halaman data-admin
+app.get('/data-admin', async (req, res) => {
+  try {
+    // Query ke database PostgreSQL
+    const data = await fetchDataAdmin();
     if (data.length === 0) {
-        // Jika tidak ada, menampilkan pesan bahwa belum ada kontak yang tersedia
-        res.render('admin/data-admin', {
-            message: 'Maaf, Belum ada daftar kontak yang tersedia.'
-        });
+      res.render('admin/data-admin', {
+        msg: req.flash("msg")
+      });
     } else {
-        // Jika ada, menampilkan data kontak di halaman kontak
-        res.render('admin/data-admin', {
-            title: "Aplikasi Penjualan",
-            dataAdmin: data,
-            titleadmin: "Web Menu - Data Admin",
-            layout: 'layout/main-layout',
-        });
+      res.render('admin/data-admin', {
+        title: 'Aplikasi Penjualan',
+        dataAdmin: data,
+        titleadmin: 'Search Book - Data Admin',
+        layout: 'layout/main-layout',
+      });
     }
+  } catch (error) {
+    console.error('Error fetching data from PostgreSQL:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
+// update data-admin
+app.get("/data-admin/update-admin/:id_admin", async (req, res) => {
+  try {
+    const adminku = await searchDataAdmin(req.params.id_admin);
+    res.render("admin/update-admin", {
+      title: "Seacrh Book - Update Admin",
+      layout: "layout/main-layout",
+      adminku,
+    });
+  } catch (err) {
+    console.error(err.msg);
+    res.status(500);
+  }
+});
+
+app.post(
+  "/data-admin/update",
+  [
+    body("id_admin").custom(async (value, { req }) => {
+      const duplicate = await duplicateName(value);
+      if (value !== req.body.oldName && duplicate) {
+        return Promise.reject("Name sudah digunakan!");
+      }
+      return true;
+    }),
+    body("email").custom(async (value) => {
+      const emailDuplicate = await emailDuplicateCheck(value);
+      if (emailDuplicate) {
+        throw new Error("Email sudah digunakan!");
+      }
+      return true;
+    }),
+    check("email", "Invalid email").isEmail(),
+    check("mobile", "Ada yang salah dengan nomor telepon. perbaiki lagi!").isMobilePhone(
+      "id-ID"
+    ),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("admin/update-admin", {
+        title: "Search Book - Update Admin",
+        layout: "layout/main-layout",
+        errors: errors.array(),
+        adminku: {
+          oldName: req.body.oldName,
+          id_admin: req.body.id_admin,
+          email: req.body.email,
+          mobile: req.body.mobile,
+          // Tambahkan properti lain sesuai kebutuhan
+        },
+      });
+    } else {
+      try {
+        await updateAdmin(req.body);
+        req.flash("msg", "Data berhasil di update");
+        res.redirect("/data-admin");
+      } catch (err) {
+        console.error(err.msg);
+        res.status(500);
+      }
+    }
+  }
+);
+
+// delete data-admin / by ID
+app.get("/data-admin/delete-admin/:id_admin", async (req, res) => {
+  try {
+    const deletedDataAdmin = await deleteDataAdminku(req.params.id_admin);
+
+    if (!deletedDataAdmin) {
+      req.flash("msg", "Data tidak ditemukan atau telah dihapus");
+    } else {
+      req.flash("msg", "Data berhasil di hapus");
+    }
+
+    res.redirect("/data-admin");
+  } catch (err) {
+    console.error(err.msg);
+    req.flash("msg", "Terjadi kesalahan saat menghapus data.");
+    res.redirect("/data-admin");
+  }
+});
+
+
 // Penanganan rute untuk halaman data user
 app.get('/data-user', async (req, res) => {
     try {
-      // Query ke database PostgreSQL
-      const result = await pool.query('SELECT * FROM data_user');
-  
-      // Mengambil hasil query
-      const dataUser = result.rows;
+      const dataUser = await fetchDataUser();
   
       if (dataUser.length === 0) {
         res.render('user/data-user', {
@@ -130,7 +211,6 @@ app.get('/data-user', async (req, res) => {
         res.render('user/data-user', {
           title: 'Aplikasi Penjualan',
           datauser: dataUser,
-          user: 'Search - Data User',
           layout: 'layout/main-layout',
         });
       }
@@ -200,7 +280,7 @@ app.post(
     }
   );
 
-  // proses delete contact
+  // proses delete data-user
 app.get('/data-user/delete-user/:id_user',async (req, res) =>{
     try{
         const users = await searchUser(req.params.id_user)
@@ -223,7 +303,7 @@ app.get('/data-user/delete-user/:id_user',async (req, res) =>{
   
 
 
-// Dalam rute Express Anda
+// Dalam rute data-buku
 app.get('/data-buku', (req, res) => {
     const databuku = [
         {
@@ -291,7 +371,7 @@ app.get('/data-buku', (req, res) => {
 });
 
 
-// Penanganan rute untuk halaman about
+// Penanganan rute untuk halaman login
 app.get('/login', (req, res) => {
     res.render('login', {
         title: "Halaman Login", 
@@ -299,7 +379,7 @@ app.get('/login', (req, res) => {
      });
 });
 
-  
+// penanganan rute untuk halaman register
 app.get('/Register', (req, res) => {
     res.render('register', {
         title: "Halaman Register", 

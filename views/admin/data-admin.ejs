@@ -13,12 +13,18 @@
                 <i class="fas fa-plus"></i> Tambah Data Admin
               </button>
             </div>
+            <% if (typeof msg !== 'undefined' && msg.length !== 0) { %>
+                <div class="alert alert-success" role="alert">
+                    <%= msg %>
+                </div>
+            <% } %>
         <div class="card-body">
             <div class="table-responsive mx-auto">
                 <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                     <thead>
                         <tr class="text-center">
                             <th>No</th>
+                            <th>Id Admin</th>
                             <th>Nama</th>
                             <th>Nomor Handphone</th>
                             <th>Email</th>
@@ -29,12 +35,19 @@
                             <% dataAdmin.forEach((data, index) => { %>
                                 <tr>
                                     <td><%= index + 1 %></td>
+                                    <td><%= data.id_admin %></td>
                                     <td><%= data.nama %></td>
                                     <td><%= data.mobile %></td>
                                     <td><%= data.email %></td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm">Edit</button>
-                                        <button class="btn btn-danger btn-sm">Delete</button>
+                                        <a href="/data-admin/update-admin/<%= data.id_admin %>"><button class="btn btn-success">Update</button></a>
+                                        <a
+                                        href="/data-admin/delete-admin/<%= data.id_admin %>"
+                                        class="btn btn-danger btn-md position-relative"
+                                        onclick="return confirm(`Are you sure you want to delete <%= data.nama %>?`)"
+                                        >
+                                        Delete
+                                        </a>
                                         <button class="btn btn-success btn-sm">Detail</button>
                                     </td>
                                 </tr>

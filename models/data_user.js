@@ -1,4 +1,4 @@
-const pool = require("../models/db.js");
+const pool = require("./db.js");
 
 // Fungsi untuk ambil data dari database PostgreSQL
 const fetchDataUser = async () => {
