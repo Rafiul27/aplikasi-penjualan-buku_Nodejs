@@ -18,4 +18,21 @@
     <link href="/assets/css/sb-admin-2.min.css" rel="stylesheet">
     <!-- Custom styles for this page -->
     
+    <style>
+        .show-password-toggle:checked + label + input[type="password"] {
+            display: none;
+        }
+    
+        .show-password-toggle:not(:checked) + label + input[type="password"] {
+            display: inline-block;
+        }
+    
+        .show-password-toggle:checked + label + input[type="text"] {
+            display: inline-block;
+        }
+    
+        .show-password-toggle:not(:checked) + label + input[type="text"] {
+            display: none;
+        }
+    </style>
 </head>

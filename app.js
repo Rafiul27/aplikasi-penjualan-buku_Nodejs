@@ -1,5 +1,9 @@
 // Mengimpor modul Express.js
 const express = require('express');
+const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
 
 const expressLayouts = require('express-ejs-layouts'); // Mengimpor modul express-ejs-layouts
 const { body, check, validationResult } = require('express-validator');
@@ -10,9 +14,9 @@ const {
     deleteDataAdminku,
     fetchDataAdminById,
     checkIdDataAdmin,
-    duplicateIdCheck,
     searchDataAdmin,
     emailDuplicateCheck,
+    duplicatePasswordAdmin,
     updateAdmin,
     duplicateName,
 } = require("./models/data_admin")
@@ -28,12 +32,14 @@ const {
     emailDuplicateUserCheck,
     updateUser,
     duplicateUserName,
+    duplicatePasswordUser
 } = require("./models/data_user");
 
 // Menginisialisasi aplikasi Express
 const app = express();
 const path = require('path');
 const pool = require('./models/db');
+dotenv.config();
 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -43,9 +49,12 @@ const flash = require('connect-flash');
 // Menentukan port yang akan digunakan
 const port = 3000;
 
+
 // Mengatur EJS sebagai template engine
 app.set("layout", "layouts/main-layouts");
 app.set('view engine', 'ejs');
+app.use(express.json());
+
 
 
 // Middleware to serve static files (stylesheets, images, etc.)
@@ -82,59 +91,278 @@ app.use(flash());
 // Penanganan rute untuk halaman utama
 app.get('/', (req, res) => {
     res.render('index', {
-        layout: 'layout/main-layout',
+        layout: 'layout/core-index',
         namaWeb: "Rafi'ul Huda",
         title: 'Aplikasi Penjualan',
     });
 });
 
+// halaman login untuk admin ketika udh register
+app.get("/login/admin", (req, res) => {
+  res.render("login-admin", {
+    title: "Search Book - Login",
+    layout: "layout/login-layout",
+  });
+});
 
+
+// Penanganan rute untuk halaman login
+app.get('/login', (req, res) => {
+  res.render('login', {
+      title: "Halaman Login", 
+      layout: 'layout/login-layout',
+   });
+});
+
+// Assuming a login form with 'email' and 'password' fields
+app.post("/login", (req, res) => {
+  const { email, password } = req.body;
+
+  // Perform authentication logic here
+  if (isValidCredentials(email, password)) {
+      // Authentication successful
+      res.redirect(`/dashboard`);
+  } else {
+      // Authentication failed
+      res.redirect("/login"); // Redirect back to the login page or handle accordingly
+  }
+});
+
+async function isValidCredentials(email, password) {
+  try {
+    const result = await pool.query("SELECT * FROM data_admin WHERE email = $1", [
+      email,
+    ]);
+
+    if (result.rows.length > 0) {
+      const data_admin = result.rows[0];
+
+      // Menggunakan bcrypt untuk memeriksa kecocokan password
+      const passwordMatch = await bcrypt.compare(password, data_admin.password);
+
+      return passwordMatch;
+    } else {
+      return false; // Tidak ada pengguna dengan email tersebut
+    }
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+// Dashboard route
+app.get("/dashboard", (req, res) => {
+  const username = req.session.username || { email: "Guest", username: "Guest" };
+
+  res.render("dashboard", {
+      title: "Dashboard",
+      layout: "layout/main-layout",
+      username: username,
+  });
+});
+
+// middleware untuk registrasi admin
+app.post(
+  "/register",
+  [
+    body("username").custom(async (value) => {
+      const duplicateUser = await duplicateUserName(value);
+      if (duplicateUser) {
+        throw new Error("User has been registered");
+      }
+      return true;
+    }),
+    body("nama").custom(async (value) => {
+      const duplicate = await duplicateUserName(value);
+
+      if (duplicate) {
+        throw new Error("Name sudah digunakan");
+      }
+      return true;
+    }),
+    check("mobile", "mobile phone number invalid").isMobilePhone("id-ID"),
+    body("email").custom(async (value) => {
+      const emailDuplicate = await emailDuplicateUserCheck(value);
+      if (emailDuplicate) {
+        throw new Error("Email sudah digunakan");
+      }
+      return true;
+    }),
+    check("email", "Invalid email").isEmail(),
+    body("password").custom(async (value) => {
+      const duplicate = await duplicatePasswordUser(value);
+      if (duplicate) {
+        throw new Error("Password sudah digunakan");
+      }
+      return true;
+    }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("layout/register", {
+        title: "Search Book - Register Admin",
+        layout: "layout/login-layout",
+        errors: errors.array(),
+      });
+    } else {
+      try {
+        console.log("Data yang dikirim: ", req.body);
+
+        // Gunakan fungsi addDataAdmin dari model basis data
+        const addedAdmin = await addDataAdminku(
+          req.body.username,
+          req.body.nama,
+          req.body.mobile,
+          req.body.email,
+          req.body.password
+        );
+
+        if (addedAdmin) {
+          // Validasi panjang password
+          if (req.body.password.length < 6) {
+            req.flash(
+              "passwordLengthError",
+              "Password must be at least 6 characters"
+            );
+            res.redirect("/login");
+            return;
+          }
+
+          req.flash(
+            "successMessage",
+            "Data added successfully and you can login now"
+          );
+        } else {
+          throw new Error("Failed to add admin");
+        }
+      } catch (err) {
+        console.error(err.message);
+        req.flash("msg", err.message);
+        res.status(500).redirect("/register");
+        return;
+      }
+      res.redirect("/login");
+    }
+  }
+);
 
 // Penanganan rute untuk halaman data-admin
 app.get('/data-admin', async (req, res) => {
   try {
     // Query ke database PostgreSQL
     const data = await fetchDataAdmin();
-    if (data.length === 0) {
-      res.render('admin/data-admin', {
-        msg: req.flash("msg")
+    res.render('admin/data-admin', {
+            title: 'Search Book - Data Admin',
+            data,
+            msg: req.flash('msg'),
+            layout: 'layout/main-layout',
+        });
+        
+    }catch(err){
+        console.error(err.message);
+        res.render('admin/data-admin', {
+            title: 'Seacrh Book - Data Admin',
+            msg: 'Data Admin tidak tersedia.', // Pesan ketika data kosong
+            layout: 'layout/main-layout',
+            data: []
+        });
+    }
+});
+
+// add data-admin
+app.get("/data-admin/add", (req, res) => {
+  res.render("admin/add-admin", {
+    title: "Search Book - Add Admin",
+    layout: "layout/main-layout",
+  });
+});
+
+// Tangani pengiriman formulir untuk menambahkan admin
+app.post(
+  "/data-admin/add",
+  [
+    body("username").custom(async (value) => {
+      const duplicate = await duplicateName(value);
+      if (duplicate) {
+        throw new Error("username sudah terdaftar");
+      }
+      return true;
+    }),
+    body("email").custom(async (value) => {
+      const emailDuplicate = await emailDuplicateCheck(value);
+      if (emailDuplicate) {
+        throw new Error("Email sudah terdaftar");
+      }
+      return true;
+    }),
+    check("email", "Invalid email").isEmail(),
+    check("mobile", "nomor handphone anda salah").isMobilePhone("id-ID"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("admin/add-admin", {
+        title: "Search Book - Add Admin",
+        layout: "layout/main-layout",
+        errors: errors.array(),
       });
     } else {
-      res.render('admin/data-admin', {
-        title: 'Aplikasi Penjualan',
-        dataAdmin: data,
-        titleadmin: 'Search Book - Data Admin',
-        layout: 'layout/main-layout',
-      });
+      try {
+
+        // Gunakan fungsi addDataAdmin dari model basis data
+        await addDataAdminku(
+          // Ekstrak data dari tubuh permintaan
+          // req.body.id_admin,
+          req.body.username,
+          req.body.nama,
+          req.body.mobile,
+          req.body.email,
+          req.body.password
+        );
+        req.flash('msg', 'Data Admin Anda Berhasil ditambahkan!');
+
+        // Redirect ke halaman data-admin untuk melihat data yang diperbarui
+        res.redirect("/data-admin");
+      } catch (err) {
+        console.error(err.msg);
+        req.flash("msg", "An error occurred while adding data");
+        res.status(500);
+      }
     }
-  } catch (error) {
-    console.error('Error fetching data from PostgreSQL:', error);
-    res.status(500).send('Internal Server Error');
+  }
+);
+
+// update data-admin
+app.get("/data-admin/update-admin/:username", async (req, res) => {
+  try {
+      const adminku = await searchDataAdmin(req.params.username);
+
+      if (!adminku) {
+          // Handle ketika data admin tidak ditemukan, misalnya redirect atau tampilkan pesan
+          res.status(404).send("Data admin tidak ditemukan");
+          return;
+      }
+
+      res.render("admin/update-admin", {
+          title: "Seacrh Buku - Update Admin",
+          titleadmin: "Seacrh Buku - Update Admin",
+          layout: "layout/main-layout",
+          adminku,
+      });
+  } catch (err) {
+      console.error(err.msg);
+      res.status(500).send("Terjadi kesalahan server");
   }
 });
 
-// update data-admin
-app.get("/data-admin/update-admin/:id_admin", async (req, res) => {
-  try {
-    const adminku = await searchDataAdmin(req.params.id_admin);
-    res.render("admin/update-admin", {
-      title: "Seacrh Book - Update Admin",
-      layout: "layout/main-layout",
-      adminku,
-    });
-  } catch (err) {
-    console.error(err.msg);
-    res.status(500);
-  }
-});
 
 app.post(
   "/data-admin/update",
   [
-    body("id_admin").custom(async (value, { req }) => {
+    body("username").custom(async (value) => {
       const duplicate = await duplicateName(value);
-      if (value !== req.body.oldName && duplicate) {
-        return Promise.reject("Name sudah digunakan!");
+      if (duplicate) {
+        throw new Error("username sudah terdaftar");
       }
       return true;
     }),
@@ -145,8 +373,8 @@ app.post(
       }
       return true;
     }),
-    check("email", "Invalid email").isEmail(),
-    check("mobile", "Ada yang salah dengan nomor telepon. perbaiki lagi!").isMobilePhone(
+    check("email", "Email tidak valid").isEmail(),
+    check("mobile", "Ada yang salah dengan nomor telepon. Perbaiki lagi!").isMobilePhone(
       "id-ID"
     ),
   ],
@@ -154,21 +382,15 @@ app.post(
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.render("admin/update-admin", {
-        title: "Search Book - Update Admin",
+        title: "Search Buku - Update Admin",
         layout: "layout/main-layout",
         errors: errors.array(),
-        adminku: {
-          oldName: req.body.oldName,
-          id_admin: req.body.id_admin,
-          email: req.body.email,
-          mobile: req.body.mobile,
-          // Tambahkan properti lain sesuai kebutuhan
-        },
+        adminku: req.body,
       });
     } else {
       try {
         await updateAdmin(req.body);
-        req.flash("msg", "Data berhasil di update");
+        req.flash("msg", "Data berhasil diupdate");
         res.redirect("/data-admin");
       } catch (err) {
         console.error(err.msg);
@@ -177,6 +399,7 @@ app.post(
     }
   }
 );
+
 
 // delete data-admin / by ID
 app.get("/data-admin/delete-admin/:id_admin", async (req, res) => {
@@ -197,6 +420,38 @@ app.get("/data-admin/delete-admin/:id_admin", async (req, res) => {
   }
 });
 
+// Detail data-admin
+app.get("/data-admin/:username", async (req, res) => {
+  try {
+    // Ambil nilai username dari parameter route
+    const adminUsername = req.params.username;
+
+    // Ambil data admin (diasumsikan ini operasi asynchronous)
+    const adminku = await fetchDataAdmin();
+
+    // Temukan admin dengan username yang sesuai dengan adminUsername di data yang diambil
+    const admin = adminku.find((data_admin) => data_admin.username === adminUsername);
+
+    // Render view dengan detail admin jika admin ditemukan
+    if (admin) {
+      res.render("admin/data-admin", {
+        title: "Search Book - Detail Admin",
+        layout: "layout/main-layout",
+        admin,
+      });
+    } else {
+      // Tangani kasus ketika admin tidak ditemukan
+      res.status(404).send("Admin tidak ditemukan");
+    }
+  } catch (err) {
+    // Tangani error dengan mencetak pesan error ke konsol
+    console.log(err.message);
+    res.status(500).send("Kesalahan Server Internal");
+  }
+});
+
+
+
 
 // Penanganan rute untuk halaman data user
 app.get('/data-user', async (req, res) => {
@@ -209,7 +464,7 @@ app.get('/data-user', async (req, res) => {
         });
       } else {
         res.render('user/data-user', {
-          title: 'Aplikasi Penjualan',
+          title: 'Seacrh Book - Data User',
           datauser: dataUser,
           layout: 'layout/main-layout',
         });
@@ -280,12 +535,30 @@ app.post(
     }
   );
 
+  app.get("/data-admin/delete-admin/:username", async (req, res) => {
+    try {
+      const deletedAdmin = await deleteDataAdmin(req.params.username);
+  
+      if (!deletedAdmin) {
+        req.flash("msg", "Data not found or has been deleted");
+      } else {
+        req.flash("msg", "Data deleted successfully");
+      }
+  
+      res.redirect("/data-admin");
+    } catch (err) {
+      console.error(err.msg);
+      req.flash("msg", "An error occurred while deleting data.");
+      res.redirect("/data-admin");
+    }
+  });
+
   // proses delete data-user
-app.get('/data-user/delete-user/:id_user',async (req, res) =>{
+app.get('/data-user/delete-user/:username',async (req, res) =>{
     try{
         const users = await searchUser(req.params.id_user)
 
-        // jika contact tidak ada
+        // jika data-user tidak ada
         if(!users){
             res.status(404);
             res.status('<h1>404</h1>');
@@ -300,13 +573,11 @@ app.get('/data-user/delete-user/:id_user',async (req, res) =>{
     }
 }) 
 
-  
-
-
 // Dalam rute data-buku
 app.get('/data-buku', (req, res) => {
     const databuku = [
         {
+            gambar: 'images/Harry_potter.jpg',
             kode: "KB001",
             judul: "Harry Potter",
             kategori: "Fiksi",
@@ -316,6 +587,7 @@ app.get('/data-buku', (req, res) => {
             jumlah: "12",
         },
         {
+          gambar: 'images/micsrosoft excel.jpg',
             kode: "KB002",
             judul: "Naruto",
             kategori: "Fiksi",
@@ -325,6 +597,7 @@ app.get('/data-buku', (req, res) => {
             jumlah: "14",
         },
         {
+          gambar: 'images/micsrosoft office 2010.jpg',
             kode: "KB003",
             judul: "Teknik Informatika",
             kategori: "Technology",
@@ -334,6 +607,7 @@ app.get('/data-buku', (req, res) => {
             jumlah: "14",
         },
         {
+          gambar: 'images/micsrosoft office2007.jpg',
             kode: "KB004",
             judul: "Sistem Informasi",
             kategori: "Pendidikan",
@@ -343,6 +617,7 @@ app.get('/data-buku', (req, res) => {
             jumlah: "17",
         },
         {
+          gambar: 'images/Harry_potter.jpg',
             kode: "KB005",
             judul: "Ilmu Pengetahuan Alam",
             kategori: "Pendidikan",
@@ -371,16 +646,9 @@ app.get('/data-buku', (req, res) => {
 });
 
 
-// Penanganan rute untuk halaman login
-app.get('/login', (req, res) => {
-    res.render('login', {
-        title: "Halaman Login", 
-        layout: 'layout/login-layout',
-     });
-});
 
 // penanganan rute untuk halaman register
-app.get('/Register', (req, res) => {
+app.get('/register', (req, res) => {
     res.render('register', {
         title: "Halaman Register", 
         layout: 'layout/login-layout',

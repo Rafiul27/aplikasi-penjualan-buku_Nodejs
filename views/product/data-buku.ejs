@@ -9,7 +9,7 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-              <button href="/data-admin" class="btn btn-success" data-toggle="modal" data-target="#tambahDataModal">
+              <button href="/data-buku" class="btn btn-success" data-toggle="modal" data-target="#tambahDataModal">
                 <i class="fas fa-plus"></i> Tambah Data Buku
               </button>
             </div>
@@ -19,6 +19,7 @@
                     <thead>
                         <tr class="text-center">
                             <th>No</th>
+                            <th>Gambar</th>
                             <th>Kode Buku</th>
                             <th>Judul Buku</th>
                             <th>Kategori</th>
@@ -33,6 +34,7 @@
                             <% dataBuku.forEach((databuku, index) => { %>
                                 <tr>
                                     <td><%= index + 1 %></td>
+                                    <td><img src="<%= databuku.gambar %>" alt="<%= databuku.judul %> Image" style="max-width: 100px; height: auto;"></td>
                                     <td id="kodebuku"><%= databuku.kode %></td>
                                     <td id="kodebuku"><%= databuku.judul %></td>
                                     <td><%= databuku.kategori %></td>

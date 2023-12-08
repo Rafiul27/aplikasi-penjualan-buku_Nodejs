@@ -1,4 +1,6 @@
+const { fetchDataAdmin } = require("./data_admin.js");
 const pool = require("./db.js");
+const bcrypt = require("bcrypt");
 
 // Fungsi untuk ambil data dari database PostgreSQL
 const fetchDataUser = async () => {
@@ -37,23 +39,48 @@ const fetchUserById = async (id_user) => {
 
 // Add new Customer
 const addDataUser = async (
-  id_user,
+  username,
   nama,
   mobile,
-  email
+  email, 
+  password
 ) => {
   const connection = await pool.connect();
 
-  const query =
-    "INSERT INTO data_customer (id_user, nama, mobile, email) VALUES ($1, $2, $3, $4) RETURNING *";
+  // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const values = [id_user, nama, mobile, email];
+  const query =
+    "INSERT INTO data_user (username, nama, mobile, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+
+  const values = [id_user, nama, mobile, email, password];
 
   const result = await connection.query(query, values);
 
   connection.release();
 
   return result.rows[0];
+};
+
+
+const jumlahUser = async (nama) => {
+  const connection = await pool.connect();
+
+  try {
+    let query = "SELECT COUNT(*) AS total_user FROM data_user";
+    const values = [];
+
+    if (nama) {
+      query += " WHERE nama = $1";
+      values.push(nama);
+    }
+
+    const result = await connection.query(query, values);
+
+    return result.rows[0].total_user;
+  } finally {
+    connection.release();
+  }
 };
 
 // Fungsi untuk Cek ID  data_customer
@@ -93,6 +120,12 @@ const duplicateIdUserCheck = async (id_user) => {
   );
 };
 
+// duplicate password check
+const duplicatePasswordUser = async (password) => {
+  const users = await fetchDataAdmin();
+  return users.find((data_user) => data_user.password === password);
+};
+
 // duplicate Name check
 const duplicateUserName = async (nama) => {
   const users = await fetchDataUser();
@@ -110,11 +143,12 @@ const updateUser = async (newContact) => {
     const connection = await pool.connect();
     const query = `
       UPDATE data_user
-      SET id_user = $1, nama = $2, mobile = $3, email = $4
-      WHERE nama = $5
+      SET id_user = $1, username = $2, nama = $3, mobile = $4, email = $5
+      WHERE nama = $6
     `;
     await connection.query(query, [
       newContact.id_user,
+      newContact.username,
       newContact.nama,
       newContact.mobile,
       newContact.email,
@@ -150,4 +184,6 @@ module.exports = {
   emailDuplicateUserCheck,
   updateUser,
   duplicateUserName,
+  duplicatePasswordUser,
+  jumlahUser
 };
