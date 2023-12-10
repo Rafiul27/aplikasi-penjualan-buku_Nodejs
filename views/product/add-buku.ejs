@@ -1,0 +1,78 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800 p-2">Tambah Data Buku</h1>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <% if (typeof errors != 'undefined') { %>
+                <div class="alert alert-danger" role="alert">
+                  <ul>
+                    <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+            <% } %>
+            
+            <div class="card-body">
+                <form action="/data-buku/add" method="post" class="row g-3" enctype="multipart/form-data">
+                    <div class="col-10">
+                        <br>
+                        <label for="title" class="form-label">Judul Buku</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="deskripsi" class="form-label">Deskripsi</label>
+                        <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3" required></textarea>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="category" class="form-label">Kategori</label>
+                    </div>
+                    <div class="col-10">
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="pendidikan">Pendidikan</option>
+                            <option value="microsoft">Microsoft</option>
+                        </select>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="penerbit" class="form-label">Penerbit</label>
+                        <input type="text" class="form-control" id="penerbit" name="penerbit" required>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="pengarang" class="form-label">Pengarang</label>
+                        <input type="text" class="form-control" id="pengarang" name="pengarang" required>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="harga" class="form-label">Harga (Rp)</label>
+                        <input type="number" class="form-control" id="harga" name="harga" value="" required>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="jumlah" class="form-label">Jumlah</label>
+                        <input type="number" class="form-control" id="jumlah" name="jumlah" required>
+                    </div>
+                    <div class="col-10">
+                        <br>
+                        <label for="image_buku" class="form-label">Upload Gambar</label>
+                        <input type="file" class="form-control" id="image_buku" name="image_buku" required>
+                    </div>
+                    <div class="text-center p-2">
+                        <br>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="reset" class="btn btn-secondary">Reset</button>
+                        <a href="/data-buku" class="btn btn-primary">Back to admin page</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->

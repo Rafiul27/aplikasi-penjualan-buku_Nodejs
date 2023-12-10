@@ -1,10 +1,11 @@
 <!-- Begin Page Content -->
 <div class="container-fluid">
-  <div class="container mt-3">
-    <div class="row">
-        <div class="col-md-6">
-            <h2>Form Ubah Data User</h2>
-            <% if (typeof errors != 'undefined') { %>
+  <!-- Page Heading -->
+  <h1 class="h3 mb-2 text-gray-800 p-2">Update Data Admin</h1>
+  <!-- DataTales Example -->
+  <div class="card shadow mb-4">
+      <div class="card-body">
+          <% if (typeof errors != 'undefined') { %>
               <div class="alert alert-danger" role="alert">
                 <ul>
                   <% errors.forEach(error => { %>
@@ -14,27 +15,42 @@
               </div>
             
             <% } %>
-            <form method="post" action="/data-user/update">
-                <input type="hidden" name="oldName" value="<%= users.oldName || users.nama %>">
-                <div class="mb-3">
-                  <label for="id_user" class="form-label">ID Customer</label>
-                  <input type="text" class="form-control" id="id_user" name="id_user" value="<%= users.id_user ? users.id_user : '' %>" required>
-                </div>
-                <div class="mb-3">
-                  <label for="nama" class="form-label">Nama</label>
-                  <input type="text" class="form-control" id="nama" name="nama" required value="<%= users.nama %>">
-                </div>
-                <div class="mb-3">
-                  <label for="email" class="form-label">email</label>
-                  <input type="text" class="form-control" id="email" name="email" required value="<%= users.email %>">
-                </div>
-                <div class="mb-3">
-                  <label for="mobile" class="form-label">No.Telepon</label>
-                  <input type="text" class="form-control" id="mobile" name="mobile" required value="<%= users.mobile %>">
-                </div>
-                <button type="submit" class="btn btn-primary">Ubah data user</button><br><br>
-                <a href="/data-user" class="card-link">&laquo;Kembali ke Contact list</a>
-              </div>
+          <div class="card-body">
+              <form action="/data-user/update" method="post" class="row g-3">
+                <input type="hidden" name="oldUsername" value="<%= users.username %>">
+                <input type="hidden" name="id_user" value="<%= users.id_user %>">
+                  <!-- Profile Image Upload -->
+                  <div class="col-10">
+                    <br>
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username"  name="username" value="<%= users.username ? users.username : '' %>" required>
+                  </div>
+                  <div class="col-10">
+                    <br>
+                    <label for="nama" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="nama" name="nama"  value="<%= users.nama ? users.nama : ''  %>"  required>
+                  </div>
+                  <div class="col-12">
+                    <br>
+                    <label for="mobile" class="form-label">Nomor Telepon</label>
+                    <input type="text" class="form-control" id="mobile"  name="mobile"  value="<%= users.mobile ? users.mobile : '' %>" required>
+                  </div>
+                  <div class="col-10">
+                    <br>
+                    <label for="email" class="form-label">Email</label>
+                    <input type="text" class="form-control" id="email" name="email"  value="<%=  users.email ? users.email : ''  %>" required>
+                  </div>
+                  <div class="text-center p-2">
+                    <br>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <a href="/data-user" class="btn btn-primary">Back to admin page</a>
+                  </div>
+                </form> 
           </div>
-    </div>
+      </div>
+  </div>
 </div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->

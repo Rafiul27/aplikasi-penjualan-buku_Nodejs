@@ -1,4 +1,3 @@
-const { fetchDataAdmin } = require("./data_admin.js");
 const pool = require("./db.js");
 const bcrypt = require("bcrypt");
 
@@ -17,11 +16,11 @@ const fetchDataUser = async () => {
   return users;
 };
 // Cari contact
-const searchUser = async (id_user) => {
+const searchUser = async (username) => {
   const users = await fetchDataUser();
   const user = users.find(
     (data_user) =>
-      data_user.id_user.toLowerCase() === id_user.toLowerCase()
+      data_user.username.toLowerCase() === username.toLowerCase()
   );
   return user;
 };
@@ -38,30 +37,28 @@ const fetchUserById = async (id_user) => {
 };
 
 // Add new Customer
-const addDataUser = async (
-  username,
-  nama,
-  mobile,
-  email, 
-  password
-) => {
+const addDataUser = async (username, nama, mobile, email, password) => {
   const connection = await pool.connect();
 
-  // Hash password
+  try {
+    // Hash password sebelum menyimpan ke database
     const hashedPassword = await bcrypt.hash(password, 10);
+    const query =
+      "INSERT INTO data_user (username, nama, mobile, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *";
 
-  const query =
-    "INSERT INTO data_user (username, nama, mobile, email, password) VALUES ($1, $2, $3, $4, $5) RETURNING *";
+    const values = [username, nama, mobile, email, hashedPassword];
 
-  const values = [id_user, nama, mobile, email, password];
+    const result = await connection.query(query, values);
 
-  const result = await connection.query(query, values);
-
-  connection.release();
-
-  return result.rows[0];
+    return result.rows[0];
+  } catch (error) {
+    // Tangani kesalahan dengan tepat, misalnya, catat kesalahan
+    console.error(error);
+    throw new Error("Terjadi kesalahan saat menambahkan data");
+  } finally {
+    connection.release();
+  }
 };
-
 
 const jumlahUser = async (nama) => {
   const connection = await pool.connect();
@@ -126,10 +123,16 @@ const duplicatePasswordUser = async (password) => {
   return users.find((data_user) => data_user.password === password);
 };
 
-// duplicate Name check
-const duplicateUserName = async (nama) => {
+// duplicate username check
+const duplicateUsernameUser = async (username) => {
   const users = await fetchDataUser();
-  return users.find((data_user) => data_user.nama === nama);
+  return users.find((data_customer) => data_customer.username === username);
+};
+
+// duplicate Name check
+const duplicateUserName = async (name) => {
+  const users = await fetchDataUser();
+  return users.find((data_user) => data_user.name === name);
 };
 
 // email duplicate check
@@ -139,31 +142,34 @@ const emailDuplicateUserCheck = async (email) => {
 };
 
 // update contact
-const updateUser = async (newContact) => {
+const updateUser = async (datauser) => {
     const connection = await pool.connect();
     const query = `
       UPDATE data_user
-      SET id_user = $1, username = $2, nama = $3, mobile = $4, email = $5
-      WHERE nama = $6
+      SET username = $1, nama = $2, mobile = $3, email = $4
+      WHERE id_user = $5
     `;
-    await connection.query(query, [
-      newContact.id_user,
-      newContact.username,
-      newContact.nama,
-      newContact.mobile,
-      newContact.email,
-      newContact.oldName,
+    console.log(datauser)
+    const result =  await connection.query(query, [
+      // datauser.id_user,
+      datauser.username,
+      datauser.nama,
+      datauser.mobile,
+      datauser.email,
+      // datauser.password,
+      datauser.id_user,
     ]);
+    return result;
   };
 
 // Delete-customer
-const deleteDataUser = async (id_user) => {
+const deleteDataUser = async (username) => {
   const connection = await pool.connect();
   try {
     const query =
-      "DELETE FROM data_user WHERE id_user = $1 RETURNING *";
+      "DELETE FROM data_user WHERE username = $1 RETURNING *";
 
-    const result = await connection.query(query, [id_user]);
+    const result = await connection.query(query, [username]);
 
     return result.rows[0]; // Mengembalikan baris yang dihapus
   } finally {
@@ -185,5 +191,6 @@ module.exports = {
   updateUser,
   duplicateUserName,
   duplicatePasswordUser,
+  duplicateUsernameUser,
   jumlahUser
 };

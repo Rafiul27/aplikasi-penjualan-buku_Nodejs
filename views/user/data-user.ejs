@@ -9,10 +9,13 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <button href="/data-admin" class="btn btn-success" data-toggle="modal" data-target="#tambahDataModal">
-                    <i class="fas fa-plus"></i> Tambah Data User
-                </button>
-            </div>
+              <a href="/data-user/add">
+                  <button class="btn btn-success">
+                      <i class="fas fa-plus"></i> Tambah Data User
+                  </button>
+              </a>
+          </div>
+
             <% if (typeof msg !== 'undefined' && msg.length !== 0) { %>
                 <div class="alert alert-success" role="alert">
                     <%= msg %>
@@ -28,7 +31,7 @@
                             <thead>
                                 <tr class="text-center">
                                     <th>No</th>
-                                    <th>ID User</th>
+                                    <th>Username</th>
                                     <th>Nama</th>
                                     <th>Nomor Handphone</th>
                                     <th>Email</th>
@@ -36,23 +39,23 @@
                                 </tr>
                                 </thead>
                             <tbody class="text-center">
-                                <% datauser.forEach((dataUser, index) => { %>
+                                <% datauser.forEach((users, index) => { %>
                                     <tr>
                                         <td><%= index + 1 %></td>
-                                        <td><%= dataUser.id_user %></td>
-                                        <td><%= dataUser.nama %></td>
-                                        <td><%= dataUser.mobile %></td>
-                                        <td><%= dataUser.email %></td>
+                                        <td><%= users.username %></td>
+                                        <td><%= users.nama %></td>
+                                        <td><%= users.mobile %></td>
+                                        <td><%= users.email %></td>
                                         <td>
-                                            <a href="/data-user/update-user/<%= dataUser.id_user %>"><button class="btn btn-success">Update</button></a>
+                                            <a href="/data-user/update-user/<%= users.username %>"><button class="btn btn-success">Update</button></a>
                                             <a
-                                            href="/data-user/delete-user/<%= dataUser.id_user %>"
+                                            href="/data-user/delete-user/<%= users.username %>"
                                             class="btn btn-danger btn-md position-relative"
-                                            onclick="return confirm(`Are you sure you want to delete <%= dataUser.nama %>?`)"
+                                            onclick="return confirm(`Are you sure you want to delete <%= users.nama %>?`)"
                                             >
                                             Delete
                                             </a>
-                                            <button class="btn btn-success btn-sm">Detail</button>
+                                            <a data-toggle="modal" data-target="#detailModal<%= users.username %>"><button class="btn btn-info">Detail</button></a>
                                         </td>    
                                     </tr>
                                 <% }); %>
@@ -67,3 +70,46 @@
 <!-- End of Content Wrapper -->
 </div>
 <!-- End of Page Wrapper -->
+
+<% datauser.forEach((users) => { %>
+    <div class="modal fade" id="detailModal<%= users.username %>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Detail User:</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <div class="row mb-2">
+                            <div class="col-md-4 font-weight-bold">Username:</div>
+                            <div class="col-md-8"><%= users.username %></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 font-weight-bold">Nama:</div>
+                            <div class="col-md-8"><%= users.nama %></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 font-weight-bold">Nomor Telepon:</div>
+                            <div class="col-md-8"><%= users.mobile %></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 font-weight-bold">Email:</div>
+                            <div class="col-md-8"><%= users.email %></div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-4 font-weight-bold">Password:</div>
+                            <div class="col-md-8"><%= users.password %></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary" type="button" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<% }); %>
