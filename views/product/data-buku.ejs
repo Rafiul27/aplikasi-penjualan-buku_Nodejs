@@ -45,7 +45,7 @@
                                     <td><%= books.harga %></td>
                                     <td><%= books.jumlah %></td>
                                     <td>
-                                        <button class="btn btn-primary btn-sm">Edit</button>
+                                        <a href="/data-buku/update-buku/<%= books.title %>"><button class="btn btn-success">Update</button></a>
                                         <a
                                             href="/data-buku/delete-buku/<%= books.title %>"
                                             class="btn btn-danger btn-md position-relative"
@@ -54,7 +54,7 @@
                                             Delete
                                             </a>
                                             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#detailModal<%= books.title %>">
-                                                Launch demo modal
+                                                Detail
                                               </button>
                                     </td>
                                 </tr>

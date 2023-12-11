@@ -1,0 +1,80 @@
+<!-- Begin Page Content -->
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <h1 class="h3 mb-2 text-gray-800 p-2">Tambah Data Buku</h1>
+    <!-- DataTales Example -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <% if (typeof errors != 'undefined') { %>
+                <div class="alert alert-danger" role="alert">
+                  <ul>
+                    <% errors.forEach(error => { %>
+                    <li><%= error.msg %></li>
+                    <% }) %>
+                  </ul>
+                </div>
+            <% } %>
+            
+            <div class="card-body">
+               <!-- Formulir Edit Buku -->
+                <form action="/data-buku/update-buku" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="oldUsername" value="<%= books.title %>">
+                    <input type="hidden" name="id_user" value="<%= books.id_buku %>"
+                    <!-- Judul Buku -->
+                    <div class="form-group">
+                        <label for="title">Judul Buku:</label>
+                        <input type="text" class="form-control" id="title" name="title" value="<%= books.title %>" required>
+                    </div>
+                
+                    <!-- Deskripsi -->
+                    <div class="form-group">
+                    <label for="deskripsi">Deskripsi:</label>
+                    <textarea class="form-control" id="deskripsi" name="deskripsi" rows="4"><%= books.deksripsi %></textarea>
+                    </div>
+
+                    <!-- Kategori -->
+                    <div class="form-group">
+                        <label for="category">Kategori:</label>
+                        <input type="text" class="form-control" id="category" name="category" value="<%= books.category %>" required>
+                        </div>
+                
+                    <!-- Penerbit -->
+                    <div class="form-group">
+                    <label for="penerbit">Penerbit:</label>
+                    <input type="text" class="form-control" id="penerbit" name="penerbit" value="<%= books.penerbit %>" required>
+                    </div>
+                
+                    <!-- Pengarang -->
+                    <div class="form-group">
+                    <label for="pengarang">Pengarang:</label>
+                    <input type="text" class="form-control" id="pengarang" name="pengarang" value="<%= books.pengarang %>" required>
+                    </div>
+                
+                    <!-- Harga -->
+                    <div class="form-group">
+                    <label for="harga">Harga:</label>
+                    <input type="number" class="form-control" id="harga" name="harga" value="<%= books.harga %>" required>
+                    </div>
+                
+                    <!-- Jumlah -->
+                    <div class="form-group">
+                    <label for="jumlah">Jumlah Buku:</label>
+                    <input type="number" class="form-control" id="jumlah" name="jumlah" value="<%= books.jumlah %>" required>
+                    </div>
+                
+                    <!-- Gambar -->
+                    <div class="form-group">
+                    <label for="image_buku">Gambar Buku:</label>
+                    <input type="file" class="form-control-file" id="image_buku" name="image_buku">
+                    </div>
+                
+                    <!-- Tombol Submit -->
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- End of Content Wrapper -->
+</div>
+<!-- End of Page Wrapper -->

@@ -123,11 +123,10 @@ const updateBooks = async (newContact) => {
   const connection = await pool.connect();
   const query = `
     UPDATE products
-    SET id_buku = $1, title = $2, deksripsi = $3, category = $4, penerbit = $5, pengarang = $6, harga = $7, jumlah = $8
-    WHERE title = $6
+    SET title = $2, deksripsi = $3, category = $4, penerbit = $5, pengarang = $6, harga = $7, jumlah = $8
+    WHERE id_buku = $6
   `;
   await connection.query(query, [
-    newContact.id_buku,
     newContact.title,
     newContact.deksripsi,
     newContact.category,
@@ -135,7 +134,7 @@ const updateBooks = async (newContact) => {
     newContact.pengarang,
     newContact.harga,
     newContact.jumlah,
-    newContact.oldName,
+    newContact.id_buku,
   ]);
 };
 
@@ -154,10 +153,10 @@ const deleteDataBooks = async (title) => {
 };
 
 // Cari contact
-const searchBooks = async (id_buku) => {
+const searchBooks = async (title) => {
   const books = await fetchDataBook();
   const book = books.find(
-    (data_admin) => data_admin.id_buku.toLowerCase() === id_buku.toLowerCase()
+    (data_buku) => data_buku.title.toLowerCase() === title.toLowerCase()
   );
   return book;
 };
