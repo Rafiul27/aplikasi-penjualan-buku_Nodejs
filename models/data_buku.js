@@ -123,8 +123,8 @@ const updateBooks = async (newContact) => {
   const connection = await pool.connect();
   const query = `
     UPDATE products
-    SET title = $2, deksripsi = $3, category = $4, penerbit = $5, pengarang = $6, harga = $7, jumlah = $8
-    WHERE id_buku = $6
+    SET title = $2, deksripsi = $3, category = $4, penerbit = $5, pengarang = $6, harga = $7, jumlah = $8, image_buku = $9
+    WHERE id_buku = $10
   `;
   await connection.query(query, [
     newContact.title,
@@ -134,6 +134,7 @@ const updateBooks = async (newContact) => {
     newContact.pengarang,
     newContact.harga,
     newContact.jumlah,
+    newContact.image_buku,
     newContact.id_buku,
   ]);
 };
@@ -153,13 +154,27 @@ const deleteDataBooks = async (title) => {
 };
 
 // Cari contact
-const searchBooks = async (title) => {
-  const books = await fetchDataBook();
-  const book = books.find(
-    (data_buku) => data_buku.title.toLowerCase() === title.toLowerCase()
-  );
-  return book;
+const searchBooks = async (id_buku) => {
+  try {
+    // Ambil data buku (diasumsikan ini operasi asynchronous)
+    const books = await fetchDataBook();
+
+    // Cari buku berdasarkan judul (case-insensitive)
+    const foundBook = books.find((data_buku) => {
+      return (
+        data_buku.id_buku &&
+        typeof data_buku.id_buku === 'string' &&
+        data_buku.id_buku.toLowerCase() === id_buku.toLowerCase()
+      );
+    });
+
+    return foundBook; // Kembalikan buku jika ditemukan, atau null jika tidak ditemukan
+  } catch (error) {
+    console.error(error);
+    throw new Error("Terjadi kesalahan dalam pencarian buku");
+  }
 };
+
 
 module.exports = {
   fetchDataBook,

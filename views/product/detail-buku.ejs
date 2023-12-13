@@ -1,0 +1,55 @@
+<!-- About Generic Start -->
+<div class="main-wrapper">
+    <!-- Start testomial Area -->
+    <section class="testomial-area pt-100">
+        <div class="container">
+            <h5 class="modal-title" id="exampleModalLabel">Detail Buku:</h5>
+            <div class="card-body">
+                <div class="container">
+                    <% dataBuku.forEach((books, index) => { %>
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <img style="height: 400px; width: 280px;" class="img-profile rounded text-center" src="../../public/assets2/img/<%= books.image_buku %>">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Judul Buku</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.title %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Deskripsi</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.deksripsi %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Kategori</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.category %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Penerbit</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.penerbit %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Pengarang</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.pengarang %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Harga</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= (books.harga).toLocaleString("id-ID", { style: "currency", currency: "IDR" }) %></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-3 col-4 mb-2">Jumlah</div>
+                                    <div class="col-sm-9 col-8 mb-2"><%= books.jumlah %> pcs</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <a href="/dashboard-user"><button class="btn btn-outline-secondary" type="button" data-dismiss="modal">Close</a></button>
+                            <a href="/cart"class="btn btn-primary btn-md position-relative" style="margin-left: 10px">Add to cart</a>
+                        </div>
+                        <% }); %>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End testomial Area -->
+</div>

@@ -45,17 +45,14 @@
                                     <td><%= books.harga %></td>
                                     <td><%= books.jumlah %></td>
                                     <td>
-                                        <a href="/data-buku/update-buku/<%= books.title %>"><button class="btn btn-success">Update</button></a>
+                                        <a href="/data-buku/update-buku/<%= books.id_buku %>"><button class="btn btn-success">Update</button></a>
                                         <a
-                                            href="/data-buku/delete-buku/<%= books.title %>"
+                                            href="/data-buku/delete-buku/<%= books.id_buku %>"
                                             class="btn btn-danger btn-md position-relative"
-                                            onclick="return confirm(`Are you sure you want to delete <%= books.title %>?`)"
+                                            onclick="return confirm(`Are you sure you want to delete <%= books.id_buku %>?`)"
                                             >
                                             Delete
                                             </a>
-                                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#detailModal<%= books.title %>">
-                                                Detail
-                                              </button>
                                     </td>
                                 </tr>
                                 <div class="modal fade" id="detailModal<%= books.title %>" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
@@ -99,8 +96,8 @@
                                                         <div class="col-sm-9 col-8 mb-2"><%= books.jumlah %> pcs</div>
                                                     </div>
                                                     <div class="row">
-                                                        <div class="col-sm-3 col-4 mb-2">Foto</div>
-                                                        <div class="col-sm-9 col-8 mb-2"><img style="height: 250px; width: 250px;" class="img-profile rounded" src="../../public/assets2/img/<%= books.image_buku %>"></div>
+                                                        <!-- <div class="col-sm-3 col-4 mb-2">Foto</div> -->
+                                                        <div class="col-sm-9 col-6 mb-2"><img style="height: 280px; width: 280px;" class="img-profile rounded text-center" src="../../public/assets2/img/<%= books.image_buku %>"></div>
                                                     </div>
                                                 </div>
                                             </div>

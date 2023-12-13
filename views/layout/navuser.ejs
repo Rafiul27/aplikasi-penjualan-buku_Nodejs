@@ -1,20 +1,32 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-info fixed-top">
   <div class="container">
+    <!-- Brand -->
     <a class="navbar-brand" href="#"><span class="text-warning"><i class="fas fa-book"></i> Search</span>Book</a>
+
+    <!-- Navbar Toggler Button -->
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
+
+    <!-- Navbar Links -->
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ml-auto mb-2 mb-lg-0">
+        <!-- Home -->
         <li class="nav-item">
-          <a class="nav-link" href="#home">Home</a>
+          <a class="nav-link" href="/dashboard-user">Home</a>
         </li>
+
+        <!-- Rekomendasi -->
         <li class="nav-item">
-          <a class="nav-link" href="#about">About</a>
+          <a class="nav-link" href="#about">Rekomendasi</a>
         </li>
+
+        <!-- List Buku -->
         <li class="nav-item">
-          <a class="nav-link" href="#list">Course</a>
+          <a class="nav-link" href="#list">List Buku</a>
         </li>
+
+        <!-- Dropdown Kategori Buku -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
             Kategori Buku
@@ -24,8 +36,19 @@
             <a class="dropdown-item" href="/buku-pendidikan">Buku Pendidikan</a>
           </div>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-white" href="/login"><i class="fas fa-sign-in-alt"></i> Login</a>
+
+        <!-- User Profile -->
+        <li class="nav-item dropdown">
+          <% if (users) { %>
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-user"></i> Rafi'ul Huda
+            </a>
+          <div class="dropdown-menu">
+            <a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+          <% } else { %>
+            <p>error tidak muncul</p>
+          <% } %>
         </li>
       </ul>
     </div>

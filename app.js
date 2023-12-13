@@ -127,7 +127,7 @@ app.get("/logout", async (req, res) => {
 
 // =================================== Dashboard Admin dan user ===================================
 // Dashboard route untuk admin
-app.get("/dashboard-admin", (req, res) => {
+app.get("/dashboard-admin",async (req, res) => {
   const username = req.session.username || { email: "Guest", username: "Guest" };
 
   res.render("dashboard-admin", {
@@ -138,14 +138,25 @@ app.get("/dashboard-admin", (req, res) => {
 });
 
 // Dashboard route untuk pengguna
-app.get("/dashboard-user", (req, res) => {
-  const username = req.session.username || { email: "Guest", username: "Guest" };
-
-  res.render("dashboard-user", {
-    title: "Dashboard",
-    layout: "layout/user-layout",
-    username: username,
-  });
+app.get("/dashboard-user",async (req, res) => {
+  try {
+    const username = req.session.username || { email: "Guest", username: "Guest" };
+    // Ambil data buku dari PostgreSQL
+    const books = await fetchDataBook(); // Anda perlu menggantinya sesuai dengan fungsi atau metode pengambilan data dari database
+    const users = await fetchDataUser();
+    // Render halaman dengan data buku
+    res.render("index-user", {
+      title: "Dashboard",
+      layout: "layout/user-layout",
+      username: username,
+      dataBuku: books,
+      users
+    });
+  } catch (error) {
+    console.error(error);
+    // Tangani kesalahan, berikan respons atau redirect ke halaman lain
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // =================================== end ===================================
@@ -823,6 +834,11 @@ app.post('/data-buku/add', upload.single("image_buku"), [
       );
       req.flash("msg", "Data added successfully");
       res.redirect("/data-buku");
+      res.render('product/update-buku', {
+        title: 'Seacrh Book - Update Admin',
+        layout: 'layout/main-layout',
+        books, // Tambahkan data buku yang diperbarui
+      });
     } catch (err) {
       console.error(err);
       req.flash("msg", "An error occurred while adding data");
@@ -852,23 +868,21 @@ app.get('/data-buku/delete-buku/:title',async (req, res) =>{
   }
 });
 
-// penanganan detail user
-app.get("/data-buku/:title", async (req, res) => {
+app.get("/detail-buku/:id_buku", async (req, res) => {
   try {
-
-    // Ambil data admin (diasumsikan ini operasi asynchronous)
+    // Ambil data buku (diasumsikan ini operasi asynchronous)
     const books = await fetchDataBook();
 
-    // Render view dengan detail admin jika admin ditemukan
-    if (books) {
-      res.render("product/data-buku", {
+    // Render view dengan detail buku jika buku ditemukan
+    if (books && books.length > 0) {
+      res.render("product/detail-buku", {
         title: "Search Book - Detail Buku",
-        layout: "layout/main-layout",
-        books,
+        layout: "layout/user-layout",
+        dataBuku : books,
       });
     } else {
-      // Tangani kasus ketika admin tidak ditemukan
-      res.status(404).send("Admin tidak ditemukan");
+      // Tangani kasus ketika buku tidak ditemukan
+      res.status(404).send("Buku tidak ditemukan");
     }
   } catch (err) {
     // Tangani error dengan mencetak pesan error ke konsol
@@ -877,21 +891,16 @@ app.get("/data-buku/:title", async (req, res) => {
   }
 });
 
-app.get("/data-buku/update-buku/:title", async (req, res) => {
+app.get("/data-buku/update-buku/:id_buku", async (req, res) => {
   try {
-      console.log(error);
-      const books = await searchBooks(req.params.title);
-      if (!books) {
-          // Handle ketika data admin tidak ditemukan, misalnya redirect atau tampilkan pesan
-          res.status(404).send("Data tidak ditemukan");
-          return;
-      }
-
+      const books = await searchBooks(req.params.id_buku);
+      
       res.render("product/update-buku", {
           title: "Seacrh Buku - Update Admin",
           layout: "layout/main-layout",
-          books,
-      });
+          books : books,
+          
+    });
   } catch (err) {
       console.error(err.msg);
       res.status(500).send("Terjadi kesalahan server");
@@ -900,7 +909,7 @@ app.get("/data-buku/update-buku/:title", async (req, res) => {
 
 
 // Rute untuk menangani pembaruan buku
-app.post('/data-buku/update-buku/:title', upload.single('image_buku'), [
+app.post('/data-buku/update-buku', upload.single('image_buku'), [
   body('category').notEmpty().withMessage('Category is required'),
   // Tambahkan validasi sesuai kebutuhan untuk bidang lainnya
 ], async (req, res) => {
@@ -930,13 +939,13 @@ app.post('/data-buku/update-buku/:title', upload.single('image_buku'), [
       // Update data buku
       await updateBooks(
         req.params.title,
-        req.body.category || ' ',
-        req.body.deskripsi,
+        req.body.deksripsi,
+        category,
         req.body.penerbit,
         req.body.pengarang,
         req.body.harga,
         req.body.jumlah,
-        existingBook.image
+        req.file.filename,
       );
 
       req.flash('msg', 'Data buku berhasil diperbarui');
@@ -949,6 +958,44 @@ app.post('/data-buku/update-buku/:title', upload.single('image_buku'), [
   }
 });
 
+app.get("/buku-pendidikan",async (req, res) => {
+  try {
+    const books = await fetchDataBook(); // Anda perlu menggantinya sesuai dengan fungsi atau metode pengambilan data dari database
+    // const users = await fetchDataUser();
+    // Render halaman dengan data buku
+    res.render("product/buku-pendidikan", {
+      title: "Seacrh Book - Buku Pendidikan",
+      layout: "layout/user-layout",
+      dataBuku: books,
+    });
+  } catch (error) {
+    console.error(error);
+    // Tangani kesalahan, berikan respons atau redirect ke halaman lain
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// =================================== end ===================================
+
+// =================================== cart ===================================
+
+app.get("/cart", async (req, res) => {
+  try {
+    const book = await fetchDataBook(); // Anda perlu menggantinya sesuai dengan fungsi atau metode pengambilan data dari database
+    // const users = await fetchDataUser();
+    // Render halaman dengan data buku
+    res.render("cart", {
+      title: "Seacrh Book - Keranjang",
+      layout: "layout/user-layout",
+      book,
+    });
+  } catch (error) {
+    console.error(error);
+    // Tangani kesalahan, berikan respons atau redirect ke halaman lain
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 // Penanganan rute untuk permintaan yang tidak cocok dengan rute lainnya (404 Not Found)
@@ -957,17 +1004,8 @@ app.use('/', (req, res) => {
     res.send('page not found: 404');
 });
 
-app.get('/transaksi', (req, res) => {
-  const transactions = [
-    { id: 1, title: 'Harry Potter', author: 'J.K. Rowling', price: 100000, quantity: 2, date: '2023-12-11' },
-    // Tambahkan data transaksi lainnya di sini
-  ];
-  res.render('transaksi', { 
-    transactions,
-    title: "Search Book - Data Transaksi",
-    layout: "layout/main-layout"
-   });
-});
+
+
 // Server mendengarkan permintaan pada port yang telah ditentukan
 app.listen(port, () => {
     // Pesan ini akan dicetak saat server berjalan

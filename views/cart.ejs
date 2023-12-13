@@ -1,0 +1,59 @@
+<section class="section-gap" id="list">
+    <div class="container mt-5">
+        <h2 class="mb-4">Shopping Cart</h2>
+    
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Cart items -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <% if (book.length > 0) { %>
+                        <div class="row mb-3">
+                            <div class="col-md-2">
+                                <img src="../../public/assets2/img/<%= book[0].image_buku %>" alt="Book Image" class="img-fluid">
+                            </div>
+                            <div class="col-md-7">
+                                <h5 class="card-title"><%= book[0].title %></h5>
+                                <p class="card-text"><%= book[0].pengarang %></p>
+                                <p class="card-text"><%= (book[0].harga).toLocaleString("id-ID", { style: "currency", currency: "IDR" }) %></p>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control" value="1" min="1">
+                                <button class="btn btn-danger btn-sm mt-2">Remove</button>
+                            </div>
+                        </div>
+                        <% } else { %>
+                            <p>Keranjang belanja kosong.</p>
+                        <% } %>
+                    </div>
+                </div>
+    
+                <!-- Add more items as needed -->
+    
+            </div>
+            <div class="col-lg-4">
+                <!-- Order Summary -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Order Summary</h5>
+                        <ul class="list-group">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Subtotal
+                                <span class="badge badge-primary badge-pill">$19.99</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Shipping
+                                <span class="badge badge-primary badge-pill">$5.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total
+                                <span class="badge badge-primary badge-pill">$24.99</span>
+                            </li>
+                        </ul>
+                        <button class="btn btn-success btn-block mt-3">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
